@@ -1,0 +1,20 @@
+# .github/workflows/label-new-issues.yml
+name: Label new issues
+
+on:
+    issues:
+        types: [opened, reopened]
+
+permissions:
+    issues: write
+
+jobs:
+    add-label:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Add triage label
+              run: gh issue edit "$NUMBER" --add-label "triage"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_REPO: ${{ github.repository }}
+                  NUMBER: ${{ github.event.issue.number }}

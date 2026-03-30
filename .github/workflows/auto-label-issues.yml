@@ -1,0 +1,60 @@
+# .github/workflows/auto-label-issues.yml
+name: Auto-label issues
+
+on:
+    issues:
+        types: [opened, edited, reopened]
+
+permissions:
+    issues: write
+
+jobs:
+    auto-label:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Apply labels from issue content
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const issue = context.payload.issue;
+                      const title = (issue.title || "").toLowerCase();
+                      const body = (issue.body || "").toLowerCase();
+
+                      const labels = ["triage"];
+
+                      if (title.includes("[bug]")) labels.push("bug");
+                      if (title.includes("[feature]")) labels.push("feature");
+
+                      if (
+                        body.includes("iphone") ||
+                        body.includes("android") ||
+                        body.includes("mobile")
+                      ) {
+                        labels.push("mobile");
+                      }
+
+                      if (
+                        body.includes("ui") ||
+                        body.includes("layout") ||
+                        body.includes("button") ||
+                        body.includes("design")
+                      ) {
+                        labels.push("ui");
+                      }
+
+                      if (
+                        body.includes("slow") ||
+                        body.includes("performance") ||
+                        body.includes("lag")
+                      ) {
+                        labels.push("performance");
+                      }
+
+                      const uniqueLabels = [...new Set(labels)];
+
+                      await github.rest.issues.addLabels({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue.number,
+                        labels: uniqueLabels
+                      });
